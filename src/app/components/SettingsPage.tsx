@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useState, useRef, useEffect } from 'react';
 import {
   X, Settings, Cpu, Sparkles, Target, ShieldCheck, Bell, User, ChevronDown, Info,
@@ -16,16 +17,22 @@ type NavSection =
 
 function InfoTooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
-  const [side, setSide] = useState<'top' | 'bottom'>('top');
-  const [align, setAlign] = useState<'center' | 'right'>('center');
+  const [pos, setPos] = useState({ top: 0, left: 0, anchorRight: false, above: true });
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleMouseEnter = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      setSide(rect.top > 160 ? 'top' : 'bottom');
-      // If the button is in the right 40% of the viewport, anchor tooltip to the right
-      setAlign(rect.left > window.innerWidth * 0.6 ? 'right' : 'center');
+      const tooltipWidth = 240;
+      const spaceOnRight = window.innerWidth - rect.left;
+      const anchorRight = spaceOnRight < tooltipWidth;
+
+      setPos({
+        top: rect.top > 160 ? rect.top - 8 : rect.bottom + 8,
+        left: anchorRight ? rect.right : rect.left + rect.width / 2,
+        anchorRight,
+        above: rect.top > 160,
+      });
     }
     setShow(true);
   };
@@ -43,27 +50,28 @@ function InfoTooltip({ text }: { text: string }) {
       >
         <Info className="w-3.5 h-3.5" />
       </button>
-      {show && (
+
+      {show && typeof window !== 'undefined' && createPortal(
         <div
-          className={`absolute z-50 w-60 bg-white rounded-[8px] shadow-[0_8px_28px_rgba(0,0,0,0.18)] border border-gray-100 px-3.5 py-3 pointer-events-none ${
-            side === 'top' ? 'bottom-full mb-2.5' : 'top-full mt-2.5'
-          } ${
-            align === 'right'
-              ? 'right-0'
-              : 'left-1/2 -translate-x-1/2'
-          }`}
+          className="fixed z-[9999] w-60 bg-white rounded-[8px] shadow-[0_8px_28px_rgba(0,0,0,0.18)] border border-gray-100 px-3.5 py-3 pointer-events-none"
+          style={{
+            top: pos.above ? undefined : pos.top,
+            bottom: pos.above ? window.innerHeight - pos.top : undefined,
+            left: pos.anchorRight ? undefined : pos.left,
+            right: pos.anchorRight ? window.innerWidth - pos.left : undefined,
+            transform: pos.anchorRight ? undefined : 'translateX(-50%)',
+          }}
         >
           <p className="text-[12px] text-[#333] leading-relaxed">{text}</p>
           <div
-            className={`absolute w-2.5 h-2.5 bg-white rotate-45 ${
-              side === 'top'
-                ? 'top-full -mt-[6px] border-b border-r border-gray-100'
-                : 'bottom-full -mb-[6px] border-t border-l border-gray-100'
-            } ${
-              align === 'right' ? 'right-1' : 'left-1/2 -translate-x-1/2'
-            }`}
+            className={`absolute w-2.5 h-2.5 bg-white rotate-45 border-gray-100 ${
+              pos.above
+                ? 'top-full -mt-[6px] border-b border-r'
+                : 'bottom-full -mb-[6px] border-t border-l'
+            } ${pos.anchorRight ? 'right-1' : 'left-1/2 -translate-x-1/2'}`}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </span>
   );

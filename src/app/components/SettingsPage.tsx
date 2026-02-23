@@ -17,12 +17,15 @@ type NavSection =
 function InfoTooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
   const [side, setSide] = useState<'top' | 'bottom'>('top');
+  const [align, setAlign] = useState<'center' | 'right'>('center');
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleMouseEnter = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setSide(rect.top > 160 ? 'top' : 'bottom');
+      // If the button is in the right 40% of the viewport, anchor tooltip to the right
+      setAlign(rect.left > window.innerWidth * 0.6 ? 'right' : 'center');
     }
     setShow(true);
   };
@@ -42,16 +45,22 @@ function InfoTooltip({ text }: { text: string }) {
       </button>
       {show && (
         <div
-          className={`absolute left-1/2 -translate-x-1/2 z-50 w-60 bg-white rounded-[8px] shadow-[0_8px_28px_rgba(0,0,0,0.18)] border border-gray-100 px-3.5 py-3 pointer-events-none ${
+          className={`absolute z-50 w-60 bg-white rounded-[8px] shadow-[0_8px_28px_rgba(0,0,0,0.18)] border border-gray-100 px-3.5 py-3 pointer-events-none ${
             side === 'top' ? 'bottom-full mb-2.5' : 'top-full mt-2.5'
+          } ${
+            align === 'right'
+              ? 'right-0'
+              : 'left-1/2 -translate-x-1/2'
           }`}
         >
           <p className="text-[12px] text-[#333] leading-relaxed">{text}</p>
           <div
-            className={`absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white rotate-45 ${
+            className={`absolute w-2.5 h-2.5 bg-white rotate-45 ${
               side === 'top'
                 ? 'top-full -mt-[6px] border-b border-r border-gray-100'
                 : 'bottom-full -mb-[6px] border-t border-l border-gray-100'
+            } ${
+              align === 'right' ? 'right-1' : 'left-1/2 -translate-x-1/2'
             }`}
           />
         </div>

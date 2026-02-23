@@ -268,6 +268,11 @@ function AIAutonomySection() {
 
 // ─── Section: Your Identity & Values ─────────────────────────────────────────
 
+const coreValueOptions = [
+  'Warmth', 'Directness', 'Formality', 'Precision',
+  'Empathy', 'Clarity', 'Brevity', 'Other (user defined)',
+];
+
 function IdentityValuesSection() {
   const [coreValues, setCoreValues] = useState([
     'Warmth', 'Directness', 'Formality', 'Precision', 'Other (user defined)',

@@ -268,10 +268,74 @@ function AIAutonomySection() {
 
 // ─── Section: Your Identity & Values ─────────────────────────────────────────
 
-const coreValueOptions = [
-  'Warmth', 'Directness', 'Formality', 'Precision',
-  'Empathy', 'Clarity', 'Brevity', 'Other (user defined)',
-];
+function CoreValueSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const isCustom = !coreValueOptions.includes(value) || value === 'Other (user defined)';
+  const [editingCustom, setEditingCustom] = useState(isCustom);
+  const [customText, setCustomText] = useState(isCustom && value !== 'Other (user defined)' ? value : '');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingCustom) inputRef.current?.focus();
+  }, [editingCustom]);
+
+  if (editingCustom) {
+    return (
+      <div className="flex items-center gap-1" style={{ minWidth: '150px' }}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={customText}
+          onChange={e => {
+            setCustomText(e.target.value);
+            onChange(e.target.value || 'Other (user defined)');
+          }}
+          onBlur={() => {
+            if (!customText.trim()) {
+              setEditingCustom(false);
+              onChange('Other (user defined)');
+            }
+          }}
+          placeholder="Type your value..."
+          className="flex-1 bg-[#f0f4ff] border border-[#6786e2] rounded-[5px] px-3 py-2 text-[13px] text-[#1e1e1e] outline-none focus:ring-2 focus:ring-[#6155f5]/30"
+          style={{ minWidth: 0 }}
+        />
+        <button
+          onClick={() => {
+            setEditingCustom(false);
+            setCustomText('');
+            onChange('Other (user defined)');
+          }}
+          className="text-gray-400 hover:text-gray-600 flex-shrink-0 text-xs px-1"
+          title="Cancel"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <SettingsSelect
+      value={value}
+      options={coreValueOptions}
+      onChange={v => {
+        if (v === 'Other (user defined)') {
+          setEditingCustom(true);
+          setCustomText('');
+        } else {
+          onChange(v);
+        }
+      }}
+      minWidth="150px"
+    />
+  );
+}
 
 function IdentityValuesSection() {
   const [coreValues, setCoreValues] = useState([
@@ -300,12 +364,10 @@ function IdentityValuesSection() {
                 <span className="font-semibold text-[13px] text-[#1e1e1e] whitespace-nowrap w-14 flex-shrink-0">
                   Rank {i + 1} :
                 </span>
-                <SettingsSelect
-                  value={coreValues[i]}
-                  options={coreValueOptions}
-                  onChange={v => updateRank(i, v)}
-                  minWidth="150px"
-                />
+                <CoreValueSelect
+                    value={coreValues[i]}
+                    onChange={v => updateRank(i, v)}
+                  />
               </div>
             ))}
             {[3, 4].map(i => (
@@ -313,11 +375,9 @@ function IdentityValuesSection() {
                 <span className="font-semibold text-[13px] text-[#1e1e1e] whitespace-nowrap w-14 flex-shrink-0">
                   Rank {i + 1} :
                 </span>
-                <SettingsSelect
+                <CoreValueSelect
                   value={coreValues[i]}
-                  options={coreValueOptions}
                   onChange={v => updateRank(i, v)}
-                  minWidth="150px"
                 />
               </div>
             ))}

@@ -232,7 +232,7 @@ function AIAutonomySection() {
   const scopeDesc: Record<string, string> = {
     'Current Session Only': 'AI only uses the current chat history, ignores saved goals and long term memory',
     'All Sessions': 'AI can access all past session data to provide richer, more contextual responses',
-    Verify: 'AI cross-references its responses against your saved goals and past sessions before replying',
+    Verify: 'AI confirms at the start of any new chat if it should use past session data or not',
   };
 
   return (

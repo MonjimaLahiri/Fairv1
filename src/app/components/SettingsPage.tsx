@@ -338,6 +338,107 @@ function CoreValueSelect({
 }
 
 function IdentityValuesSection() {
+  function CoreValueSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const isOther = value === 'Other (user defined)' || !coreValueOptions.includes(value);
+  const [editingCustom, setEditingCustom] = useState(false);
+  const [customText, setCustomText] = useState(
+    isOther && value !== 'Other (user defined)' ? value : ''
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingCustom) inputRef.current?.focus();
+  }, [editingCustom]);
+
+  // If value is already a custom string (not in options list), show input directly
+  if (isOther && value !== 'Other (user defined)' && !editingCustom) {
+    return (
+      <div className="flex items-center gap-1" style={{ minWidth: '150px' }}>
+        <input
+          type="text"
+          value={customText}
+          onChange={e => {
+            setCustomText(e.target.value);
+            onChange(e.target.value || 'Other (user defined)');
+          }}
+          placeholder="Type your value..."
+          className="flex-1 bg-[#f0f4ff] border border-[#6786e2] rounded-[5px] px-3 py-2 text-[13px] text-[#1e1e1e] outline-none focus:ring-2 focus:ring-[#6155f5]/30"
+          style={{ minWidth: 0 }}
+        />
+        <button
+          onClick={() => {
+            setCustomText('');
+            onChange('Other (user defined)');
+          }}
+          className="text-gray-400 hover:text-gray-600 flex-shrink-0 text-xs px-1"
+          title="Cancel"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  if (editingCustom) {
+    return (
+      <div className="flex items-center gap-1" style={{ minWidth: '150px' }}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={customText}
+          onChange={e => {
+            setCustomText(e.target.value);
+            onChange(e.target.value || 'Other (user defined)');
+          }}
+          onBlur={() => {
+            if (!customText.trim()) {
+              setEditingCustom(false);
+              onChange('Other (user defined)');
+            }
+          }}
+          placeholder="Type your value..."
+          className="flex-1 bg-[#f0f4ff] border border-[#6786e2] rounded-[5px] px-3 py-2 text-[13px] text-[#1e1e1e] outline-none focus:ring-2 focus:ring-[#6155f5]/30"
+          style={{ minWidth: 0 }}
+        />
+        <button
+          onClick={() => {
+            setEditingCustom(false);
+            setCustomText('');
+            onChange('Other (user defined)');
+          }}
+          className="text-gray-400 hover:text-gray-600 flex-shrink-0 text-xs px-1"
+          title="Cancel"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <SettingsSelect
+      value={value}
+      options={coreValueOptions}
+      onChange={v => {
+        if (v === 'Other (user defined)') {
+          setEditingCustom(true);
+          setCustomText('');
+        } else {
+          onChange(v);
+        }
+      }}
+      minWidth="150px"
+    />
+  );
+}
+
+function IdentityValuesSection() {
   const [coreValues, setCoreValues] = useState([
     'Warmth', 'Directness', 'Formality', 'Precision', 'Other (user defined)',
   ]);
@@ -365,9 +466,9 @@ function IdentityValuesSection() {
                   Rank {i + 1} :
                 </span>
                 <CoreValueSelect
-                    value={coreValues[i]}
-                    onChange={v => updateRank(i, v)}
-                  />
+                  value={coreValues[i]}
+                  onChange={v => updateRank(i, v)}
+                />
               </div>
             ))}
             {[3, 4].map(i => (
@@ -406,6 +507,7 @@ function IdentityValuesSection() {
       </SettingsCard>
     </div>
   );
+}
 }
 
 // ─── Section: Goal Alignment & Clarity ───────────────────────────────────────
